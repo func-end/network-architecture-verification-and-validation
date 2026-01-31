@@ -114,15 +114,50 @@ The user will have two options:
 
 ### Analysis ###
 
-Identifying network segments and hosts
+NAVV’s workflow is intentionally **Excel-first**: NAVV generates an `.xlsx` workbook, you annotate it (segments, asset names, Purdue levels), then you re-run NAVV to apply your annotations back onto the traffic analysis.
 
-Adding information about network segments and/or inventory can assist in packet capture analysis. Open the NAVV-generated `.xlsx` file and navigate to the `Segments` tab. Enter the relevant network segments and choose background colors for the corresponding cells. For example: 
+#### Files NAVV creates
 
-![](./docs/images/segments.png)
+A typical run produces:
 
-Save your changes and re-run the NAVV tool with the `-z` option on the directory containing the Zeek log files and `.xlsx` file. The tool will modify the contents of the spreadsheet, recoloring the contents of the `Analysis` tab to match the segments specified in the `Segments` tab. This simplifies the task of identifying cross-segment traffic.
+- **NAVV workbook**: `<customer>_NAVV.xlsx` (or whatever you name it)
+- **Zeek logs**: either generated from a PCAP you provided, or reused from an existing logs directory
 
-When available, the NAVV tool will use responses for queries found in Zeek's `dns.log` file to populate the `Src_Desc` and `Dest_Desc` fields in the `Analysis` tab. When DNS information is not available, it is possible to provide this information manually in the `Inventory` tab. Note that color formatting from the `Inventory` tab is applied **after** that from the `Segments` tab. Again, saving changes to the spreadsheet file and re-running the NAVV tool with the `-z` option will update the spreadsheet with the new inventory information and color formatting.
+The workbook is designed to be edited and re-used across runs.
+
+#### Excel workbook tabs
+
+- **Analysis** – The collated traffic view (Zeek + NAVV enrichment). This is where you sort/filter and visually inspect flows.
+- **Segments** – Your network segment definitions (CIDRs / ranges / labels) plus optional color coding. NAVV uses this tab to apply consistent coloring and labeling in `Analysis`.
+- **Inventory** – Optional host/IP annotations (names, roles, owner, notes). Inventory colors apply **after** segment colors.
+- **Purdue_Definitions** (NAVV 4.x) – Source-of-truth list of Purdue levels, descriptions, and colors used by dropdowns.
+
+#### Suggested workflow
+
+1. **Run NAVV on a PCAP or Zeek logs** to generate the initial workbook.
+2. Open the workbook and fill in:
+   - **Segments** tab: define segment names and CIDRs/ranges; pick segment colors.
+   - **Inventory** tab (optional): label important hosts (jump boxes, historians, PLCs, etc.).
+   - **Purdue levels** (NAVV 4.x): assign Purdue levels to segments.
+3. **Save the workbook**.
+4. **Re-run NAVV** using the same workbook + the same Zeek logs directory.
+   - NAVV updates the `Analysis` tab, applies your segment/inventory colors, and keeps your definitions.
+
+#### Segment matching and “guessing”
+
+NAVV will attempt to map each source/destination IP to a segment using the CIDRs/ranges you define on the `Segments` tab.
+
+- If an IP falls inside a defined segment, NAVV labels it and applies that segment’s formatting.
+- If an IP does **not** match any defined segment, NAVV leaves it unclassified (so it stands out).
+
+**Practical tip:** Start with coarse segments (a few broad CIDRs), re-run NAVV, then refine segments as you learn more. This is faster than trying to perfectly model the network up-front.
+
+#### Host enrichment (DNS and manual overrides)
+
+When available, NAVV uses Zeek `dns.log` responses to populate `Src_Desc` and `Dest_Desc` in `Analysis`.
+
+- If DNS data is missing or incomplete, add host descriptions in the `Inventory` tab.
+- On re-run, NAVV preserves your inventory annotations and re-applies them to the updated analysis.
 
 ### Purdue Model Support (NAVV 4.x)
 
