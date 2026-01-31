@@ -23,3 +23,51 @@ test-data
 ## Code Editors ##
 .idea
 .vscode
+
+# -----------------------------
+# Python artifacts
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+
+# -----------------------------
+# Virtual environments
+# -----------------------------
+.venv/
+
+# -----------------------------
+# PyInstaller
+# -----------------------------
+build/
+dist/
+build-onefile/
+dist-onefile/
+*.spec
+!navv.spec
+
+# -----------------------------
+# Data / generated artifacts
+# -----------------------------
+*.pkl
+*.xlsx
+analysis/
+test-data/
+
+# -----------------------------
+# Environment / secrets
+# -----------------------------
+.env
+
+# -----------------------------
+# macOS
+# -----------------------------
+.DS_Store
+
+# -----------------------------
+# Editors / IDEs
+# -----------------------------
+.idea/
+.vscode/
