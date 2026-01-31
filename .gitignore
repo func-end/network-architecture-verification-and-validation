@@ -71,3 +71,58 @@ test-data/
 # -----------------------------
 .idea/
 .vscode/
+# =============================
+# Python / runtime artifacts
+# =============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.coverage
+.mypy_cache/
+.pytest_cache/
+.python-version
+
+# =============================
+# Virtual environments
+# =============================
+.venv/
+
+# =============================
+# PyInstaller artifacts
+# =============================
+build/
+dist/
+build-onefile/
+dist-onefile/
+*.spec
+!navv.spec
+
+# =============================
+# Generated data / outputs
+# =============================
+*.pkl
+*.xlsx
+
+# NAVV local test runs (DO NOT COMMIT)
+navv_tests/
+zeek_logs/
+analysis/
+test-data/
+
+# =============================
+# Environment / secrets
+# =============================
+.env
+
+# =============================
+# macOS
+# =============================
+.DS_Store
+
+# =============================
+# Editors / IDEs
+# =============================
+.idea/
+.vscode/
