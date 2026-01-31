@@ -2,8 +2,8 @@
 
 # Copyright 2023 Battelle Energy Alliance, LLC
 
-from dataclasses import dataclass, field
-import netaddr
+from typing import Any
+from dataclasses import dataclass
 
 
 @dataclass
@@ -12,15 +12,17 @@ class InventoryItem:
     name: str
     mac_address: str
     vendor: str
-    color: str
+    color: Any
 
 
 @dataclass
 class Segment:
     name: str
     description: str
+    cidr: str
     network: str
-    color: str
+    color: Any
+    purdue_level: str = ""
 
 
 @dataclass

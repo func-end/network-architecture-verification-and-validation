@@ -23,7 +23,7 @@ def get_pcap_file() -> tuple[str, str, str]:
 
     # Multiple PCAP files found
     if len(pcap_files) > 1:
-        logger.error(f"Found multiple pcap files, please remove all but one.")
+        logger.error("Found multiple pcap files, please remove all but one.")
         return "", "Found multiple pcap files. Please remove all but one.", "danger"
 
     filename = pcap_files.pop()

@@ -63,20 +63,27 @@ def download():
 
     # set excel file
     excel_file = request.files.get("spreadsheet")
-    if excel_file and excel_file.filename:
+    # type guard for excel_file
+    if excel_file is not None and excel_file.filename:
         excel_file.save(os.path.join(output_dir, excel_file.filename))
 
     # Get pcap file and Zeek logs if available
     pcap_file = request.files.get("pcapfile")
-    if pcap_file and pcap_file.filename:
+    if pcap_file is not None and pcap_file.filename:
         pcap_file.save(os.path.join(output_dir, pcap_file.filename))
 
     zeek_logs = request.files.get("zeeklogs")
+    zeek_logs_filename = None
     if zeek_logs and zeek_logs.filename:
-        zeek_logs.save(os.path.join(output_dir, zeek_logs.filename))
+        zeek_logs_filename = zeek_logs.filename
+        zeek_logs.save(os.path.join(output_dir, zeek_logs_filename))
 
     memfile = generate(
-        customer_name, output_dir, pcap_file, zeek_logs.filename, excel_file
+        customer_name,
+        output_dir,
+        pcap_file,
+        zeek_logs_filename,
+        excel_file,
     )
 
     return send_file(memfile, download_name=filename, as_attachment=True)

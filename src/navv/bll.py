@@ -1,3 +1,4 @@
+import builtins
 import json
 import os
 import pandas as pd
@@ -36,7 +37,9 @@ def get_zeek_df(zeek_data: list, dns_data: dict):
 @timeit
 def get_inventory_report_df(zeek_df: pd.DataFrame):
     """Return a pandas dataframe of the inventory report data."""
-    zeek_df["port_and_proto"] = zeek_df["port"] + "/" + zeek_df["proto"]
+    zeek_df["port_and_proto"] = (
+        zeek_df["port"].fillna("").astype(str) + "/" + zeek_df["proto"].fillna("").astype(str)
+    )
 
     zeek_df["src_ipv4"] = zeek_df["src_ip"].apply(
         lambda ip: ip if is_ipv4_address(ip) else None
@@ -120,14 +123,14 @@ def get_inventory_report_df(zeek_df: pd.DataFrame):
         lambda mac: get_mac_vendor(mac_vendors, mac)
     )
     grouped_df["ipv4"] = (grouped_df["src_ipv4"] + grouped_df["dst_ipv4"]).apply(
-        lambda ip: list(set(ip))
+        lambda ip: list(builtins.set(ip))
     )
     grouped_df["ipv6"] = (grouped_df["src_ipv6"] + grouped_df["dst_ipv6"]).apply(
-        lambda ip: list(set(ip))
+        lambda ip: list(builtins.set(ip))
     )
     grouped_df["hostname"] = (
         grouped_df["src_hostname"] + grouped_df["dst_hostname"]
-    ).apply(lambda hostname: list(set(hostname)))
+    ).apply(lambda hostname: list(builtins.set(hostname)))
 
     grouped_df.drop(
         columns=[
@@ -160,6 +163,7 @@ def get_snmp_df(zeek_data: list):
         ],
     )
 
+
 @timeit
 def get_mac_df(zeek_df: pd.DataFrame):
     smac_df = zeek_df[
@@ -176,14 +180,19 @@ def get_mac_df(zeek_df: pd.DataFrame):
         ]
     ].reset_index(drop=True)
 
-    smac_df = smac_df.rename(columns={'src_mac': 'mac', 'src_ip': 'ip'})
-    dmac_df = dmac_df.rename(columns={'dst_mac': 'mac', 'dst_ip': 'ip'})
-    mac_df = smac_df._append(dmac_df, ignore_index=True)
-    mac_df = mac_df.groupby('mac')['ip'].apply(list).reset_index(name='associated_ip')
+    smac_df = smac_df.rename(columns={"src_mac": "mac", "src_ip": "ip"})
+    dmac_df = dmac_df.rename(columns={"dst_mac": "mac", "dst_ip": "ip"})
+
+    mac_df = pd.concat([smac_df, dmac_df], ignore_index=True)
+    mac_df = (
+        mac_df.groupby("mac")["ip"]
+        .agg(lambda s: s.tolist())
+        .reset_index(name="associated_ip")
+    )
 
     for index, row in enumerate(mac_df.to_dict(orient="records"), start=0):
         # Source IPs - Need to get unique values
-        ips = set(row["associated_ip"])
+        ips = builtins.set(row["associated_ip"])
         list_ips = (list(ips))
         if len(list_ips) > 1:
             ip_list = ', '.join([str(item) for item in list_ips])

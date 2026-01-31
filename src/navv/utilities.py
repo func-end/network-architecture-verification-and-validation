@@ -8,7 +8,7 @@ from time import monotonic
 
 from tqdm import tqdm
 
-from navv.message_handler import info_msg, success_msg, error_msg
+from navv.message_handler import info_msg, success_msg, warning_msg
 from navv.validators import is_mac_address
 
 
@@ -53,21 +53,28 @@ def trim_dns_data(data):
 
 
 def get_mac_vendor(mac_vendors: dict, mac_address: str) -> str:
-    """Return the vendor of the MAC address."""
+    """Return the vendor of the MAC address.
+
+    Notes:
+    - Blank/None MACs are common in logs and should not be treated as errors.
+    - Invalid MAC formats are warned and a sentinel value is returned.
+    - Valid MACs with no match in the vendor list simply return "Unknown Vendor".
+    """
+    if mac_address is None:
+        return ""
+
+    mac_address = str(mac_address).strip()
+    if not mac_address:
+        return ""
+
     mac_address = mac_address.upper()
 
     if not is_mac_address(mac_address):
-        error_msg(f"Invalid MAC address: {mac_address}")
-        return f"Bad MAC address {mac_address}"
+        warning_msg(f"Invalid MAC address (skipping vendor lookup): {mac_address}")
+        return "Bad MAC"
 
-    try:
-        vendor = [
-            vendor["vendorName"]
-            for vendor in mac_vendors
-            if mac_address.startswith(vendor["macPrefix"])
-        ][0]
-    except IndexError:
-        error_msg(f"Unknown vendor for MAC address: {mac_address}")
-        return "Unknown Vendor"
+    for vendor in mac_vendors:
+        if mac_address.startswith(vendor.get("macPrefix", "")):
+            return vendor.get("vendorName", "Unknown Vendor")
 
-    return vendor
+    return "Unknown Vendor"
